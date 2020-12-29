@@ -88,7 +88,16 @@ public void litEntete(BufferedReader fichier) {
 // x, y : les coordonnées (x,y) du sommet
 // t    : la taille du point 
 //
-public void afficheSommet() {
+public void afficheSommet(String couleur, int taille, int abscisse, int ordonnee) {
+  int clr = unhex(couleur);
+  println(clr);
+  int scl = taille;
+  int x = abscisse;
+  int y = ordonnee;
+  //stroke(clr);
+  strokeWeight(scl);
+  point(x, y);
+  println("point", x, y);
 }
 
 //
@@ -106,6 +115,7 @@ public void litSommet(BufferedReader fichier) {
     int ordonnee = PApplet.parseInt(reader.readLine());
     reader.readLine(); // Ferme la balise
     println(couleur, taille, abscisse, ordonnee);
+    afficheSommet(couleur, taille, abscisse, ordonnee);
   }
   catch (IOException e) {
     e.printStackTrace();
@@ -155,8 +165,8 @@ public void litEtAfficheFace(BufferedReader fichier) {
 //
 public void afficheInfo() {
   text(nom, 100, 100);
-  text(largeur, 100, 100);
-  text(hauteur, 100, 100);
+  text(largeur, 100, 110);
+  text(hauteur, 100, 120);
 }
 
 //
@@ -178,15 +188,21 @@ public void litFichier() { //File fichier
     }
 
     // TO LOOP AFTER ALL
-
     line = reader.readLine();
-    if (line.equals(line) == true){
-      litSommet(reader);
-      reader.readLine();
+    while(line != null){
+      if (line.equals("<sommet>") == true){
+        litSommet(reader);
+        line = reader.readLine();
+      }
+      // } else if (line.equals("<arete>") == true){
+      //   litArete(reader);
+      //   line = reader.readLine();
+      // }
     }
-    
+
+
+
     reader.close();
-    println(nom,largeur,hauteur);
   } 
   catch (IOException e) {
     e.printStackTrace();
