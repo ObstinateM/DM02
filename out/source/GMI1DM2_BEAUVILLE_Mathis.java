@@ -42,7 +42,7 @@ String nom;
 //
 public void setup() {
   
-  selectInput("Lire le fichier : ", "litFichier");
+  selectInput("Lire le fichier : ", "fichierSelectionne");
 }
 
 //
@@ -50,6 +50,10 @@ public void setup() {
 //
 public void draw() {
   if(newFile){
+    background(255);
+    stroke(255);
+    strokeWeight(1);
+    fill(255);
     litFichier(newFilePath);
     newFile = false;
   }
@@ -204,7 +208,7 @@ public void litEtAfficheFace(BufferedReader fichier) {
       vertex(coordFace[i][0], coordFace[i][1]);
     }
     vertex(coordFace[0][0], coordFace[0][1]);
-    
+
     endShape();
 
     reader.readLine(); // Ferme la balise
@@ -262,9 +266,7 @@ public void litFichier(File selection) {
         line = reader.readLine();
       }
     }
-  afficheInfo();
-
-
+    afficheInfo();
     reader.close();
   } 
   catch (IOException e) {
