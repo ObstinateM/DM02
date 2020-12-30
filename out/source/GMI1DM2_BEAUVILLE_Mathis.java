@@ -30,6 +30,11 @@ public class GMI1DM2_BEAUVILLE_Mathis extends PApplet {
 // les variables globales
 //
 int largeur, hauteur;
+int nbSommet = 0;
+int nbArete = 0;
+int nbFace = 0;
+boolean newFile = false;
+File newFilePath;
 String nom;
 
 //
@@ -37,14 +42,17 @@ String nom;
 //
 public void setup() {
   
-  litFichier();
-  //selectInput("Lire le fichier : ", "litFichier");
+  selectInput("Lire le fichier : ", "litFichier");
 }
 
 //
 // boucle de rendu
 //
 public void draw() {
+  if(newFile){
+    litFichier(newFilePath);
+    newFile = false;
+  }
 }
 
 //
@@ -53,6 +61,11 @@ public void draw() {
 // 'o' : charge une image
 //
 public void keyTyped() {
+  if (keyPressed){
+    if (key == 'o' || key == 'O'){
+      selectInput("Lire le fichier : ", "fichierSelectionne");
+    }
+  }
 }
 
 //
@@ -61,6 +74,8 @@ public void keyTyped() {
 // selection : le fichier renvoyé par la boîte de dialogue d'ouverture du fichier
 //
 public void fichierSelectionne(File selection) {
+  newFile = true;
+  newFilePath = selection;
 }
 
 //
@@ -79,7 +94,6 @@ public void litEntete(BufferedReader fichier) {
   catch (IOException e) {
     e.printStackTrace();
   }
-  afficheInfo();
 }
 
 //
@@ -88,7 +102,14 @@ public void litEntete(BufferedReader fichier) {
 // x, y : les coordonnées (x,y) du sommet
 // t    : la taille du point 
 //
-public void afficheSommet() {
+public void afficheSommet(String couleur, int taille, int abscisse, int ordonnee) {
+  int clr = unhex(couleur);
+  int scl = taille;
+  int x = abscisse;
+  int y = ordonnee;
+  stroke(clr);
+  strokeWeight(scl);
+  point(x, y);
 }
 
 //
@@ -105,7 +126,7 @@ public void litSommet(BufferedReader fichier) {
     int abscisse = PApplet.parseInt(reader.readLine());
     int ordonnee = PApplet.parseInt(reader.readLine());
     reader.readLine(); // Ferme la balise
-    println(couleur, taille, abscisse, ordonnee);
+    afficheSommet(couleur, taille, abscisse, ordonnee);
   }
   catch (IOException e) {
     e.printStackTrace();
@@ -120,7 +141,16 @@ public void litSommet(BufferedReader fichier) {
 // t      : la taille du segment
 // c      : la couleur du segment
 //
-public void afficheArete() {
+public void afficheArete(String couleur, int largeur, int premierAbscisse, int premierOrdonnee, int secondAbscisse, int secondOrdonnee) {
+    int clr = unhex(couleur);
+    int lgr = largeur;
+    int firstX = premierAbscisse;
+    int firstY = premierOrdonnee;
+    int secondX = secondAbscisse;
+    int secondY = secondOrdonnee;
+    stroke(clr);
+    strokeWeight(lgr);
+    line(firstX, firstY, secondX, secondY);
 }
 
 //
@@ -129,12 +159,21 @@ public void afficheArete() {
 // fichier : le fichier d'entrée
 //
 public void litArete(BufferedReader fichier) {
-  // try {
-  //   // lit l'arête
-  // }
-  // catch (IOException e) {
-  //   e.printStackTrace();
-  // }
+  try {
+    BufferedReader reader;
+    reader = fichier;
+    String couleur = reader.readLine();
+    int largeur = PApplet.parseInt(reader.readLine());
+    int firstX = PApplet.parseInt(reader.readLine());
+    int firstY = PApplet.parseInt(reader.readLine());
+    int secondX = PApplet.parseInt(reader.readLine());
+    int secondY = PApplet.parseInt(reader.readLine());
+    reader.readLine(); // Ferme la balise
+    afficheArete(couleur, largeur, firstX, firstY, secondX, secondY);
+  }
+  catch (IOException e) {
+    e.printStackTrace();
+  }
 }
 
 //
@@ -143,20 +182,49 @@ public void litArete(BufferedReader fichier) {
 // fichier : le fichier d'entrée
 //
 public void litEtAfficheFace(BufferedReader fichier) {
-  // try {
-  // }
-  // catch (IOException e) {
-  //   e.printStackTrace();
-  // }
+  try {
+    BufferedReader reader;
+    reader = fichier;
+    int couleur = unhex(reader.readLine());
+    int nbPts = PApplet.parseInt(reader.readLine());
+    int[][] coordFace;
+    coordFace = new int[nbPts][2];
+    fill(couleur);
+
+    beginShape();
+
+    for (int i = 0; i < nbPts; ++i) {
+      int[] temp;
+      temp = new int[2];
+      int line = PApplet.parseInt(reader.readLine());
+      temp[0] = line;
+      line = PApplet.parseInt(reader.readLine());
+      temp[1] = line;
+      coordFace[i] = temp;
+      vertex(coordFace[i][0], coordFace[i][1]);
+    }
+    vertex(coordFace[0][0], coordFace[0][1]);
+    
+    endShape();
+
+    reader.readLine(); // Ferme la balise
+  }
+  catch (IOException e) {
+    e.printStackTrace();
+  }
 }
 
 //
 // dessine le cartouche d'information
 //
 public void afficheInfo() {
-  text(nom, 100, 100);
-  text(largeur, 100, 100);
-  text(hauteur, 100, 100);
+  fill(0);
+  text(nom, 25, 25);
+  text(largeur, 25, 35);
+  text(hauteur, 25, 45);
+  text(nbSommet, 25, 55);
+  text(nbArete, 25, 65);
+  text(nbFace, 25, 75);
 }
 
 //
@@ -164,9 +232,9 @@ public void afficheInfo() {
 // --------------------------
 // fichier : le nom du fichier à lire
 //
-public void litFichier() { //File fichier
+public void litFichier(File selection) {
   // ouverture du fichier
-  BufferedReader reader = createReader("sommet.arp");// createReader(fichier);
+  BufferedReader reader = createReader(selection);
   String line = null;
   int i = 0;
   try {
@@ -178,15 +246,26 @@ public void litFichier() { //File fichier
     }
 
     // TO LOOP AFTER ALL
-
     line = reader.readLine();
-    if (line.equals(line) == true){
-      litSommet(reader);
-      reader.readLine();
+    while(line != null){
+      if (line.equals("<sommet>") == true){
+        nbSommet += 1;
+        litSommet(reader);
+        line = reader.readLine();
+      } else if (line.equals("<arete>") == true){
+        nbArete += 1;
+        litArete(reader);
+        line = reader.readLine();
+      } else if (line.equals("<face>") == true){
+        nbFace+= 1;
+        litEtAfficheFace(reader);
+        line = reader.readLine();
+      }
     }
-    
+  afficheInfo();
+
+
     reader.close();
-    println(nom,largeur,hauteur);
   } 
   catch (IOException e) {
     e.printStackTrace();
